@@ -1,0 +1,28 @@
+{
+  "name": "mediumclone",
+  "version": "1.0.0",
+  "description": "medium clone",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sirak kidane",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "bootstrap": "^5.3.2",
+    "connect-mongo": "^5.0.0",
+    "dompurify": "^3.0.6",
+    "ejs": "^3.1.9",
+    "ejs-lint": "^1.1.0",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "joi": "^17.11.0",
+    "jsdom": "^22.1.0",
+    "marked": "^9.1.1",
+    "mongoose": "^7.6.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.0.1",
+    "slugify": "^1.6.6"
+  }
+}
