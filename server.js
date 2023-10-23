@@ -4,9 +4,14 @@ const collections = require("./views/registerSchema");
 const bycrypt = require("bcryptjs");
 const session = require("express-session");
 const mongoStore = require("connect-mongo");
+require("./views/auth");
 const app = express();
 const BlogPost = require("./views/blogPostSchema");
 const Joi = require("joi");
+const passport = require("passport");
+require("dotenv").config();
+
+require("dotenv").config();
 
 app.set("views", path.join(__dirname, "views", "registration"));
 app.set("view engine", "ejs");
@@ -33,6 +38,9 @@ app.use(
   })
 );
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 const signupSchema = Joi.object({
   username: Joi.string().alphanum().min(3).max(30).required(),
   email: Joi.string().email().required(),
@@ -51,6 +59,23 @@ app.get("/signup", (req, res) => {
   res.render("signup");
 });
 
+//google authentication
+app.get(
+  "/auth/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  })
+);
+
+//google auth
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/failed" }),
+  async function (req, res) {
+    const articles = await BlogPost.find().sort({ createdAt: -1 });
+    res.render("index", { articles });
+  }
+);
 app.post("/signup", async (req, res) => {
   try {
     const { error, value } = signupSchema.validate(req.body);
@@ -72,6 +97,8 @@ app.post("/signup", async (req, res) => {
     res.status(500).send("An error occurred during signup");
   }
 });
+
+//login post
 
 app.post("/login", async (req, res) => {
   try {
@@ -118,9 +145,9 @@ app.post("/createBlogPost", async (req, res) => {
 
 app.get("/article", async (req, res) => {
   try {
-    const article = await BlogPost.find().sort({ createdAt: -1 }); // Retrieve articles and sort by createdAt in descending order
+    const articles = await BlogPost.find().sort({ createdAt: -1 }); // Retrieve articles and sort by createdAt in descending order
 
-    res.render("index", { article });
+    res.render("index", { articles });
   } catch (error) {
     console.error(error);
     res.status(500).send("An error occurred while fetching blog posts.");
