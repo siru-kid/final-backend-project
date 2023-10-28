@@ -1,10 +1,7 @@
 const db = require("./db");
 
 const blogSchema = new db.Schema({
-  title: {
-    type: String,
-    required: true,
-  },
+  title: String,
   description: String,
   authorProfilePic: String,
   createdAt: {

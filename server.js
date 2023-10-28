@@ -9,6 +9,7 @@ const app = express();
 const BlogPost = require("./views/blogPostSchema");
 const Joi = require("joi");
 const passport = require("passport");
+const methodOverride = require("method-override");
 require("dotenv").config();
 
 require("dotenv").config();
@@ -21,6 +22,7 @@ app.use(
   express.static(__dirname + "/node_modules/bootstrap/dist")
 );
 app.use(express.urlencoded({ extended: false }));
+app.use(methodOverride("_method"));
 
 app.use(
   session({
@@ -125,7 +127,6 @@ app.post("/login", async (req, res) => {
 app.post("/createBlogPost", async (req, res) => {
   try {
     const { title, description, authorProfilePic, image } = req.body;
-    const userId = req.session.user;
 
     const newBlogPost = new BlogPost({
       title,
@@ -161,6 +162,54 @@ app.get("/logout", (req, res) => {
 
     res.redirect("/login");
   });
+});
+
+//delete article by it's Id
+app.delete("/deleteArticle/:articleId", async (req, res) => {
+  const articleId = req.params.articleId;
+  try {
+    const result = await BlogPost.findByIdAndDelete(articleId);
+    if (result) {
+      res.redirect("/article");
+    } else {
+      console.log("Article not found");
+      res.status(404).send("Article not found");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("An error occurred while deleting the article.");
+  }
+});
+
+app.post("/edit/:id", async (req, res) => {
+  try {
+    const articleId = req.params.id;
+
+    const { title, description, authorProfilePic, image } = req.body;
+
+    const updatedArticle = await BlogPost.findByIdAndUpdate(articleId, {
+      title,
+      description,
+      authorProfilePic,
+      image,
+    });
+
+    if (updatedArticle) {
+      res.redirect("/Article");
+    } else {
+      console.log("Article not found");
+      res.status(404).send("Article not found");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("An error occurred while updating the article.");
+  }
+});
+
+//edit article
+app.get("/edit/:id", async (req, res) => {
+  const article = await BlogPost.findById(req.params.id);
+  res.render("edit", { article: article });
 });
 
 app.listen(3000, () => {
