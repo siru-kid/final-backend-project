@@ -10,7 +10,7 @@
     <style>
       .custom-container {
         width: 500px;
-        height: 550px;
+        height: 570px;
         margin-top: 40px;
 
         padding-top: 20px;
@@ -72,12 +72,41 @@
         margin: 0 15px;
         text-align: center;
       }
+
+      .glow {
+        font-size: 17px;
+        color: red;
+        text-align: center;
+        padding-top: 20px;
+        padding-bottom: 0;
+        animation: glow 1s ease-in-out infinite alternate;
+      }
+
+      @-webkit-keyframes glow {
+        from {
+          text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073,
+            0 0 40px #e60073, 0 0 50px #e60073, 0 0 60px #e60073,
+            0 0 70px #e60073;
+        }
+
+        to {
+          text-shadow: 0 0 20px #fff, 0 0 30px #c40f69, 0 0 40px #ff4da6,
+            0 0 50px #ff4da6, 0 0 60px #ff4da6, 0 0 70px #ff4da6,
+            0 0 80px #d60a70;
+        }
+      }
     </style>
     <title>Login</title>
   </head>
   <body>
     <div class="container-fluid custom-container">
       <h1>Sign In</h1>
+
+      <!-- Display flash messages here -->
+      <% if (messages.error) { %>
+      <div class="glow"><%= messages.error %></div>
+      <% } %>
+
       <form action="/login" method="post">
         <div class="form-group">
           <label for="username">Username</label>

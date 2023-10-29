@@ -10,8 +10,6 @@ const BlogPost = require("./views/blogPostSchema");
 const Joi = require("joi");
 const passport = require("passport");
 const methodOverride = require("method-override");
-const LocalStrategy = require("passport-local").Strategy;
-const flash = require("connect-flash"); //handle flash messages when displaying authentication-related
 require("dotenv").config();
 
 require("dotenv").config();
@@ -19,7 +17,6 @@ require("dotenv").config();
 app.set("views", path.join(__dirname, "views", "registration"));
 app.set("view engine", "ejs");
 
-app.use(flash());
 app.use(
   "/bootstrap",
   express.static(__dirname + "/node_modules/bootstrap/dist")
@@ -52,41 +49,12 @@ const signupSchema = Joi.object({
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")).required(),
 });
 
-//use password to find out if the login is authenticated or not or if he/she is Admin or user
-passport.use(
-  new LocalStrategy(async (username, password, done) => {
-    try {
-      const user = await collections.findOne({ username });
-
-      if (!user) {
-        return done(null, false, { message: "User not found" });
-      }
-
-      const passwordMatch = await bycrypt.compare(password, user.password);
-
-      if (!passwordMatch) {
-        return done(null, false, { message: "Wrong password" });
-      }
-
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  })
-);
-
 app.get("/", (req, res) => {
   res.render("login");
 });
 
 app.get("/login", (req, res) => {
-  const messages = {
-    error: req.flash("error"),
-    success: req.flash("success"), // Add a success message
-    info: req.flash("info"), // Add an info message
-  };
-
-  res.render("login", { messages }); // Pass `messages` as a local variable to the view.
+  res.render("login");
 });
 
 app.get("/signup", (req, res) => {
@@ -119,6 +87,7 @@ function isAdmin(req, res, next) {
   res
     .status(403)
     .send("Access Denied: you are not authorized to perform this action");
+  alert("Access Denied: you are not authorized to perform this action"); //try this if it doesn't work remove
 }
 
 //signup Post method
@@ -146,25 +115,26 @@ app.post("/signup", async (req, res) => {
 });
 
 //login post
-app.post("/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) {
-      return next(err);
-    }
-    if (!user) {
-      req.flash("error", info.message); // Set an error flash message
-      return res.redirect("/login"); // Redirect back to the login page with the error message
-    }
+app.post("/login", async (req, res) => {
+  try {
+    const check = await collections.findOne({ username: req.body.username });
+    if (check) {
+      passwordcheck = await bycrypt.compare(req.body.password, check.password);
+      if (passwordcheck) {
+        req.session.user = check._id;
 
-    req.logIn(user, async (err) => {
-      if (err) {
-        return next(err);
+        const articles = await BlogPost.find().sort({ createdAt: -1 });
+        console.log("our article", articles);
+        res.render("index", { articles });
+      } else {
+        res.send("Wrong password");
       }
-
-      const articles = await BlogPost.find().sort({ createdAt: -1 });
-      res.render("index", { articles });
-    });
-  })(req, res, next);
+    } else {
+      res.send("User not found");
+    }
+  } catch (error) {
+    res.send("Error occurred during login");
+  }
 });
 
 app.post("/createBlogPost", async (req, res) => {
@@ -208,7 +178,7 @@ app.get("/logout", (req, res) => {
 });
 
 //delete article by it's Id
-app.delete("/deleteArticle/:articleId", isAdmin, async (req, res) => {
+app.delete("/deleteArticle/:articleId", async (req, res) => {
   const articleId = req.params.articleId;
   try {
     const result = await BlogPost.findByIdAndDelete(articleId);
@@ -224,7 +194,7 @@ app.delete("/deleteArticle/:articleId", isAdmin, async (req, res) => {
   }
 });
 
-app.post("/edit/:id", isAdmin, async (req, res) => {
+app.post("/edit/:id", async (req, res) => {
   try {
     const articleId = req.params.id;
 

@@ -10,6 +10,10 @@ const Registration_Schema = new db.Schema({
   password: {
     type: String,
   },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const collections = new db.model("users", Registration_Schema);
