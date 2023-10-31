@@ -80,13 +80,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const messages = {
-    error: req.flash("error"),
-    success: req.flash("success"), // Add a success message
-    info: req.flash("info"), // Add an info message
-  };
-
-  res.render("login", { messages }); // Pass `messages` as a local variable to the view.
+  res.render("login");
 });
 
 app.get("/signup", (req, res) => {
@@ -116,9 +110,7 @@ function isAdmin(req, res, next) {
   if (req.isAuthenticated() && req.user.isAdmin) {
     return next();
   }
-  res
-    .status(403)
-    .send("Access Denied: you are not authorized to perform this action");
+  res.status(403).render("404.ejs");
 }
 
 //signup Post method
